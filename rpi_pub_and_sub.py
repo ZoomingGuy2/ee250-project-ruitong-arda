@@ -3,12 +3,12 @@ import time
 from grovepi import *
 from collections import deque
 
-# Connect the Grove LED to digital port D2, D3, and D4; Temp sensor to port A0; Buzzer to D7
+# Connect the Grove LED to digital port D2, D3, and D4; Temp sensor to port D5; Buzzer to D7
 buzzer = 7
 ledG = 2
 ledB = 3
 ledR = 4
-TempSensor = 0
+TempSensor = 5
 
 # set input and outputs
 pinMode(TempSensor,"INPUT")
@@ -60,16 +60,16 @@ def ledB_callback(client, userdata, message):
             digitalWrite(ledB,0)		# Send LOW to switch off LED
             print ("LED OFF!")
 
-def manual_mode_callback(client, userdata, message):
-    global manual_control_mode
-    m = str(message.payload, "utf-8")
-    print("manual_mode_callback: " + message.topic + " " + "\"" + m + "\"")
-    if m == "true":
-        manual_control_mode = True
-        print("Switching to manual control mode")
-    else:
-        manual_control_mode = False
-        print("Switching to auto control mode")
+#def manual_mode_callback(client, userdata, message):
+ #   global manual_control_mode
+  #  m = str(message.payload, "utf-8")
+   # print("manual_mode_callback: " + message.topic + " " + "\"" + m + "\"")
+    #if m == "true":
+     #   manual_control_mode = True
+      #  print("Switching to manual control mode")
+    #else:
+     #   manual_control_mode = False
+      #  print("Switching to auto control mode")
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to server (i.e., broker) with result code "+str(rc))
@@ -81,7 +81,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("RC_AC/ledB")
     client.message_callback_add("RC_AC/ledB", ledB_callback)
     client.subscribe("RC_AC/manual")
-    client.message_callback_add("RC_AC/manual", manual_mode_callback)
+  #  client.message_callback_add("RC_AC/manual", manual_mode_callback)
 
 
 if __name__ == '__main__':
@@ -96,9 +96,11 @@ if __name__ == '__main__':
     # Initializa a deque
     deck = deque([0, 0, 0, 0, 0])  
     while True:
-        TempValue = analogRead(TempSensor)
+        time.sleep(0.05)
+        [TempValue, humValue] = dht(TempSensor, 0)
+        time.sleep(0.05)
         deck.popleft()
-        deck.append(soundValue)
+        deck.append(TempValue)
         avg = sum(deck)/5
         print(avg)
         if not manual_control_mode:
@@ -107,6 +109,8 @@ if __name__ == '__main__':
                 digitalWrite(ledG,0)
                 digitalWrite(ledB,0)
                 digitalWrite(buzzer,1)
+                time.sleep(0.005);
+                digitalWrite(buzzer,0)
             elif avg > 40:
                 digitalWrite(ledR,1)
                 digitalWrite(ledG,1)
