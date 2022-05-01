@@ -1,6 +1,7 @@
 import paho.mqtt.client as mqtt
 import os
 from flask import Flask, redirect, render_template, request, session, url_for
+from influxdb import InfluxDBClient
 
 app = Flask(__name__)
 
@@ -26,11 +27,22 @@ def submit():
     return redirect(url_for('home'))
     
 def custom_callback(client, userdata, message):
+    
     # prints the temperature value 
     print("VM: " + str(message.payload, "utf-8"))
     global TempValue
     TempValue = int(float(str(message.payload, "utf-8")))
-   
+    # publishes mqtt variables to a prometheus gauge
+    data = [{
+        "measurement": "temp",
+        "tags":{"host": "rpi"},
+        "fields": {
+            "value":TempValue
+        }
+    }]
+    clientdb.write_points(data)
+    bruh = clientdb.query('select value from temp;')
+    
     
 def on_connect(client, userdata, flags, rc):
     print("Connected to server (i.e., broker) with result code "+str(rc))
@@ -40,11 +52,17 @@ def on_connect(client, userdata, flags, rc):
 
 
 if __name__ == "__main__":
-    client = mqtt.Client()
+    # Starts influx db server
+    clientdb = InfluxDBClient('localhost', 8086, 'admin', 'password', 'mydb')
+    clientdb.create_database('mydb')
+    clientdb.get_list_database()
+    clientdb.switch_database('mydb')
     #client.on_message = on_message
+    client = mqtt.Client()
     client.on_connect = on_connect
     client.connect(host="eclipse.usc.edu", port=11000, keepalive=60)
     client.loop_start()
+    
     TempValue = 0
     app.secret_key = os.urandom(12)
     app.run()
