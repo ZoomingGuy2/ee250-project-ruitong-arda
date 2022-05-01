@@ -3,6 +3,7 @@ import time
 from grovepi import *
 from collections import deque
 
+
 # Connect the Grove LED to digital port D2, D3, and D4; Temp sensor to port D5; Buzzer to D7
 buzzer = 7
 ledG = 2
@@ -95,30 +96,46 @@ if __name__ == '__main__':
     # Use a moving average filter of L=5
     # Initializa a deque
     deck = deque([0, 0, 0, 0, 0])  
+    
+    # Flag and state variable for playing buzzer
+    flag = 1
+    # 0 is cold state, 1 is warm state, 2 is hot state
+    newState = 0
+    oldState = 0
+    
     while True:
         time.sleep(0.05)
         [TempValue, humValue] = dht(TempSensor, 0)
+        # convert to fahrenheit
+        TempValue = TempValue*(9/5)+32
         time.sleep(0.05)
         deck.popleft()
         deck.append(TempValue)
         avg = sum(deck)/5
+        avg = round(avg, 1)
         print(avg)
         if not manual_control_mode:
             if avg > 70:
+                newState = 2
                 digitalWrite(ledR,1)
                 digitalWrite(ledG,0)
                 digitalWrite(ledB,0)
-                digitalWrite(buzzer,1)
-                time.sleep(0.005);
-                digitalWrite(buzzer,0)
+                if newState != oldState:
+                    digitalWrite(buzzer,1)
+                    time.sleep(0.002);
+                    digitalWrite(buzzer,0)
+                    flag = 0
             elif avg > 40:
-                digitalWrite(ledR,1)
+                newState = 1
+                digitalWrite(ledR,0)
                 digitalWrite(ledG,1)
                 digitalWrite(ledB,0)
             elif avg < 10:
+                newState = 0
                 digitalWrite(ledR,0)
                 digitalWrite(ledG,0)
                 digitalWrite(ledB,1)
+            oldState = newState
         # publish the sound sensor reading
         client.publish("RC_AC/TempSensor", avg)
         time.sleep(0.75)
