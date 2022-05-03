@@ -31,7 +31,7 @@ def custom_callback(client, userdata, message):
     # prints the temperature value 
     print("VM: " + str(message.payload, "utf-8"))
     global TempValue
-    TempValue = int(float(str(message.payload, "utf-8")))
+    TempValue = (float(str(message.payload, "utf-8")))
     # publishes mqtt variables to a prometheus gauge
     data = [{
         "measurement": "temp",
@@ -41,7 +41,7 @@ def custom_callback(client, userdata, message):
         }
     }]
     clientdb.write_points(data)
-    bruh = clientdb.query('select value from temp;')
+
     
     
 def on_connect(client, userdata, flags, rc):
