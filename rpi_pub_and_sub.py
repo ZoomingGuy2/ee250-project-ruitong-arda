@@ -10,6 +10,7 @@ ledG = 2
 ledB = 3
 ledR = 4
 TempSensor = 5
+thresh = 95
 
 # set input and outputs
 pinMode(TempSensor,"INPUT")
@@ -115,22 +116,22 @@ if __name__ == '__main__':
         avg = round(avg, 1)
         print(avg)
         if not manual_control_mode:
-            if avg > 70:
+            if avg > thresh:
                 newState = 2
                 digitalWrite(ledR,1)
                 digitalWrite(ledG,0)
                 digitalWrite(ledB,0)
                 if newState != oldState:
                     digitalWrite(buzzer,1)
-                    time.sleep(0.002);
+                    time.sleep(0.1);
                     digitalWrite(buzzer,0)
                     flag = 0
-            elif avg > 40:
+            elif avg > thresh-30:
                 newState = 1
                 digitalWrite(ledR,0)
                 digitalWrite(ledG,1)
                 digitalWrite(ledB,0)
-            elif avg < 10:
+            elif avg < thresh-60:
                 newState = 0
                 digitalWrite(ledR,0)
                 digitalWrite(ledG,0)
