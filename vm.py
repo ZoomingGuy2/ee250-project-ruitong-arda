@@ -54,15 +54,16 @@ def on_connect(client, userdata, flags, rc):
 
 
 if __name__ == "__main__":
-    # Starts influx db server
+    # Starts influx db client
     clientdb = InfluxDBClient('localhost', 8086, 'admin', 'password', 'mydb')
     clientdb.create_database('mydb')
     clientdb.get_list_database()
     clientdb.switch_database('mydb')
-    #client.on_message = on_message
+    # Starts mqtt client
     client = mqtt.Client()
     client.on_connect = on_connect
     client.connect(host="eclipse.usc.edu", port=11000, keepalive=60)
+    # Begin loop
     client.loop_start()
     
     TempValue = 0
