@@ -1,6 +1,7 @@
 import paho.mqtt.client as mqtt
 import os
 from flask import Flask, redirect, render_template, request, session, url_for
+# Will be used to send data to grafana
 from influxdb import InfluxDBClient
 
 app = Flask(__name__)
@@ -33,13 +34,14 @@ def custom_callback(client, userdata, message):
     global TempValue
     TempValue = (float(str(message.payload, "utf-8")))
     # publishes mqtt variables using influxdb
-        data = [{
+    data = [{
         "measurement": "temp",
         "tags":{"host": "rpi"},
         "fields": {
             "value":TempValue
         }
     }]
+    # Write data to grafana
     clientdb.write_points(data)
 
     

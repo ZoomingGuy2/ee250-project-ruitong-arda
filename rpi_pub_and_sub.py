@@ -62,16 +62,6 @@ def ledB_callback(client, userdata, message):
             digitalWrite(ledB,0)		# Send LOW to switch off LED
             print ("LED OFF!")
 
-#def manual_mode_callback(client, userdata, message):
- #   global manual_control_mode
-  #  m = str(message.payload, "utf-8")
-   # print("manual_mode_callback: " + message.topic + " " + "\"" + m + "\"")
-    #if m == "true":
-     #   manual_control_mode = True
-      #  print("Switching to manual control mode")
-    #else:
-     #   manual_control_mode = False
-      #  print("Switching to auto control mode")
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to server (i.e., broker) with result code "+str(rc))
@@ -83,7 +73,6 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("RC_AC/ledB")
     client.message_callback_add("RC_AC/ledB", ledB_callback)
     client.subscribe("RC_AC/manual")
-  #  client.message_callback_add("RC_AC/manual", manual_mode_callback)
 
 
 if __name__ == '__main__':
@@ -95,7 +84,7 @@ if __name__ == '__main__':
     digitalWrite(ledG,1)
     digitalWrite(ledB,1)
     # Use a moving average filter of L=5
-    # Initializa a deque
+    # Initialize a deque
     deck = deque([0, 0, 0, 0, 0])  
     
     # Flag and state variable for playing buzzer
@@ -118,9 +107,11 @@ if __name__ == '__main__':
         if not manual_control_mode:
             if avg > thresh:
                 newState = 2
+                # High mode, turn on red LED
                 digitalWrite(ledR,1)
                 digitalWrite(ledG,0)
                 digitalWrite(ledB,0)
+                # If first time, play the note
                 if newState != oldState:
                     digitalWrite(buzzer,1)
                     time.sleep(0.1);
@@ -128,11 +119,13 @@ if __name__ == '__main__':
                     flag = 0
             elif avg > thresh-30:
                 newState = 1
+                # Ideal mode, turn on green LED
                 digitalWrite(ledR,0)
                 digitalWrite(ledG,1)
                 digitalWrite(ledB,0)
             elif avg < thresh-60:
                 newState = 0
+                # Low mode, turn on blue LED
                 digitalWrite(ledR,0)
                 digitalWrite(ledG,0)
                 digitalWrite(ledB,1)
