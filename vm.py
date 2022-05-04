@@ -32,8 +32,8 @@ def custom_callback(client, userdata, message):
     print("VM: " + str(message.payload, "utf-8"))
     global TempValue
     TempValue = (float(str(message.payload, "utf-8")))
-    # publishes mqtt variables to a prometheus gauge
-    data = [{
+    # publishes mqtt variables using influxdb
+        data = [{
         "measurement": "temp",
         "tags":{"host": "rpi"},
         "fields": {
